@@ -40,14 +40,16 @@ Okay, so just record the dates of the games along with the results. That way
 you can graph things with respect to time later, if you want.
 """
 
-from volley_scrape import RECORD_DIRECTORY
-from datetime import timedelta
-from datetime import datetime
+from volley_scrape import RECORD_DIRECTORY, CSV_FIELDNAMES
+from datetime import datetime, timedelta
 import os.path as path
 import elo
 import csv
 
-ELO_DIRECTORY = "data/elo"
+ELO_DIRECTORY = "data/elo/"
+ELO_TEAMS_DIR = path.join(ELO_DIRECTORY, "teams/")
+ELO_MATCH_DIR = path.join(ELO_DIRECTORY, "matches/")
+TEAMS_FIELDNAMES = ["name", "wins", "losses", "elo", "date"]
 
 NAMES = ['Berry', 'Birmingham-Southern', 'Hendrix', 'Millsaps', 'Oglethorpe',
         'Centre', 'Sewanee', 'Rhodes']
@@ -61,7 +63,7 @@ def record_season(teams, year, K, R):
     :year: Two-digit string year.
     :K: K-factor for Elo updating.
     :R: Regression proportion; teams lose an Rth of their distance to 1500 Elo.
-    :returns: Path to csv file with results.
+    :returns: List of paths to csv files with results.
 
     """
     # Regress teams back towards the mean slightly.
@@ -71,26 +73,31 @@ def record_season(teams, year, K, R):
     record_fname = "volley-{}-{}.csv".format(year, year + 1)
     elo_fname = "volley-{}-{}-elo.csv".format(year, year + 1)
     path_in = path.join(RECORD_DIRECTORY, record_fname)
-    path_out = path.join(ELO_DIRECTORY, elo_fname)
+
+    path_teams_out = path.join(ELO_TEAMS_DIR, elo_fname)
+    path_match_out = path.join(ELO_MATCH_DIR, elo_fname)
 
     csv_in = open(path_in)
-    csv_out = open(path_out, "w")
-
-    out_names = ["name", "elo", "date"]
+    csv_match_out = open(path_match_out, "w")
+    csv_teams_out = open(path_teams_out, "w")
 
     reader = csv.DictReader(csv_in)
-    writer = csv.DictWriter(csv_out, fieldnames=out_names)
+    match_writer = csv.DictWriter(csv_match_out, fieldnames=CSV_FIELDNAMES)
+    teams_writer = csv.DictWriter(csv_teams_out, fieldnames=TEAMS_FIELDNAMES)
 
-    writer.writeheader()
+    match_writer.writeheader()
+    teams_writer.writeheader()
 
+    # Get initial date and write "pre-season Elo" rows in the teams file.
     first_row = next(reader)
     start_date = datetime.strptime(first_row["date"], "%Y-%M-%d")
     initial_date = start_date - timedelta(days=4)
     initial_date = initial_date.strftime("%Y-%M-%d")
 
-    for team in teams.values():
-        # Conference play starts in mid September or something.
-        writer.writerow({"name": team.name, "elo": team.elo, "date": initial_date})
+    for name, team in teams.items():
+        teams_writer.writerow({"name": name, "wins": team.wins,
+                               "losses": team.losses, "elo": team.elo,
+                               "date": initial_date})
 
     def handle_row(row):
         home = teams[row["home"]]
@@ -98,18 +105,29 @@ def record_season(teams, year, K, R):
 
         match = elo.Match(home, away, row["home-score"], row["away-score"])
 
-        match.update_elo(K)
+        row["home-elo"] = home.elo
+        row["away-elo"] = away.elo
+        row["elo-win-prob"] = match.win_prob
+        row["home-wins"] = home.wins
+        row["home-losses"] = home.losses
+        row["away-wins"] = away.wins
+        row["away-losses"] = away.losses
 
-        writer.writerow({"name": home.name, "elo": home.elo, "date": row["date"]})
-        writer.writerow({"name": away.name, "elo": away.elo, "date": row["date"]})
+        match.update_teams(K)
 
-    # handle_row(first_row)
+        match_writer.writerow(row)
+
+        teams_writer.writerow({"name": home.name, "wins": home.wins, "losses": home.losses, "elo": home.elo, "date": row["date"]})
+        teams_writer.writerow({"name": away.name, "wins": away.wins, "losses": away.losses, "elo": away.elo, "date": row["date"]})
+
+    handle_row(first_row)
 
     for row in reader:
         handle_row(row)
 
     csv_in.close()
-    csv_out.close()
+    csv_match_out.close()
+    csv_teams_out.close()
 
 
 def record_seasons(start, stop, K=40, R=3):

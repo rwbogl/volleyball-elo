@@ -18,7 +18,7 @@ MONTH_DICT = {v: k for k, v in enumerate(calendar.month_name)}
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 
 # I'm not sure if we'll use all these fieldnames, but I'll add them for now.
-CSV_FIELDNAMES = ["home", "away", "home-score", "away-score", "home-record", "away-record", "elo-home", "elo-away", "elo-win-prob", "other-win-prob", "date"]
+CSV_FIELDNAMES = ["home", "away", "home-score", "away-score", "home-wins", "home-losses", "away-wins", "away-losses", "away-record", "home-elo", "away-elo", "elo-win-prob", "date"]
 
 HTML_DIRECTORY = "data/html"
 RECORD_DIRECTORY = "data/historical"

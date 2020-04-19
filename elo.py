@@ -6,6 +6,8 @@ class Team:
     def __init__(self, name, elo):
         self.name = name
         self.elo = elo
+        self.wins = 0
+        self.losses = 0
 
     def __str__(self):
         return "{} ({})".format(self.name, round(self.elo))
@@ -52,15 +54,23 @@ class Match:
         factor = K * self.set_factor * underdog_factor
         return factor * (self.home_win_val - self.win_prob)
 
-    def update_elo(self, K):
+    def update_teams(self, K):
         """
-        Update the Elo ratings of the involved teams based on the match.
+        Update the records and Elo ratings of the involved teams based on the
+        match.
 
         Note that this could be called repeatedly with different effects each
         time.
         """
         self.home.elo += self.home_elo_change(K)
         self.away.elo -= self.home_elo_change(K)
+
+        if self.home_score == 3:
+            self.home.wins += 1
+            self.away.losses += 1
+        else:
+            self.away.wins += 1
+            self.home.losses += 1
 
     def __str__(self):
         return "{} @ {}: {}-{}".format(self.home, self.away, self.home_score, self.away_score)

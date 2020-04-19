@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 import pandas as pd
+import os.path as path
+from volley_elo import ELO_TEAMS_DIR
 import matplotlib.pyplot as plt
 
 
 def get_elo_df(year):
-    return pd.read_csv("./data/elo/volley-{}-{}-elo.csv".format(year, year + 1))
+    fpath = path.join(ELO_TEAMS_DIR, "volley-{}-{}-elo.csv".format(year, year + 1))
+    return pd.read_csv(fpath)
 
 
 def plot_elo(year):
