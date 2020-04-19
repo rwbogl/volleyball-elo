@@ -10,7 +10,7 @@ if __name__ == "__main__":
                         help='Two-digit year to start analysis.')
     parser.add_argument('stop', metavar='stop', type=int,
                         help='Two-digit year to stop analysis.')
-    parser.add_argument('-k', type=int, nargs=1, default=40,
+    parser.add_argument('-K', type=int, nargs=1, default=40,
                         help='K-factor for Elo updating. Defaults to 40.')
 
     args = parser.parse_args()
