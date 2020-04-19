@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Track Elo of a volleyball team through seasons.
 

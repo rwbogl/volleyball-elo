@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Scrape and parse SAA volleyball match records from the past few years.
 
