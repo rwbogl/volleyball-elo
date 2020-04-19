@@ -55,6 +55,15 @@ TEAMS = {name: elo.Team(name, 1500) for name in NAMES}
 
 
 def record_season(teams, year, K, R):
+    """Record a single volleyball season with Elo tracking.
+
+    :teams: Dictionary of (name, elo.Team) pairs.
+    :year: Two-digit string year.
+    :K: K-factor for Elo updating.
+    :R: Regression proportion; teams lose an Rth of their distance to 1500 Elo.
+    :returns: Path to csv file with results.
+
+    """
     # Regress teams back towards the mean slightly.
     for team in teams.values():
         team.elo -= (team.elo - 1500) / R
