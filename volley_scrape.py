@@ -8,22 +8,33 @@ We aren't doing any fancy Elo stuff here. That's for another module.
 from bs4 import BeautifulSoup
 import requests
 import calendar
+import os.path as path
 import csv
 import re
 
 MONTH_DICT = {v: k for k, v in enumerate(calendar.month_name)}
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 
+# I'm not sure if we'll use all these fieldnames, but I'll add them for now.
+CSV_FIELDNAMES = ["home", "away", "home-score", "away-score", "home-record", "away-record", "elo-home", "elo-away", "elo-win-prob", "other-win-prob", "date"]
+
+HTML_DIRECTORY = "data/html"
+RECORD_DIRECTORY = "data/historical"
+ELO_DIRECTORY = "data/elo"
+
 DATE_RE = re.compile("Women's Volleyball event: (\w*) (\d*) .*")
 
 for year in range(12, 20):
-    fname = "data/volley-{}-{}".format(year, year + 1)
+    fname = "volley-{}-{}".format(year, year + 1)
+
+    html_path = path.join(HTML_DIRECTORY, fname + ".html")
+    record_path = path.join(RECORD_DIRECTORY, fname + ".csv")
+    elo_path = path.join(ELO_DIRECTORY, fname + ".csv")
 
     try:
-        html_fname = fname + ".html"
-        f = open(html_fname)
+        f = open(html_path)
 
-        print("Read file", html_fname)
+        print("Read file", html_path)
     except FileNotFoundError:
         url = "https://www.saa-sports.com/sports/wvball/20{}-{}/schedule".format(year, year + 1)
         print("GET", url)
@@ -35,10 +46,11 @@ for year in range(12, 20):
             print("error with", url)
             continue
 
-        with open(html_fname, "w") as f:
+        with open(html_path, "w") as f:
             f.write(r.text)
 
-        f = open(html_fname)
+        print("Wrote", html_path)
+        f = open(html_path)
 
     print("Souping")
     text = f.read()
@@ -49,10 +61,8 @@ for year in range(12, 20):
     conf_rows = [t.parent.parent for t in conf_markers]
 
     print("Parsing rows")
-    with open(fname + ".csv", "w") as csv_file:
-        # This is just recording historic data, so we won't append Elo.
-        # We will have separate csv files for "developing" ratings.
-        writer = csv.DictWriter(csv_file, fieldnames=["home", "away", "home-score", "away-score", "date"])
+    with open(record_path, "w") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=CSV_FIELDNAMES)
         writer.writeheader()
 
         for row in conf_rows:
@@ -79,5 +89,5 @@ for year in range(12, 20):
 
             writer.writerow({"home": home, "away": away, "home-score": home_score, "away-score": away_score, "date": date})
 
-    print("Wrote {}.csv".format(fname))
+    print("Wrote", record_path)
     print("Done")
