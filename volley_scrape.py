@@ -22,74 +22,73 @@ CSV_FIELDNAMES = ["home", "away", "home-score", "away-score", "home-record", "aw
 
 HTML_DIRECTORY = "data/html"
 RECORD_DIRECTORY = "data/historical"
-ELO_DIRECTORY = "data/elo"
 
 DATE_RE = re.compile("Women's Volleyball event: (\w*) (\d*) .*")
 
-for year in range(12, 20):
-    fname = "volley-{}-{}".format(year, year + 1)
+if __name__ == "__main__":
+    for year in range(12, 20):
+        fname = "volley-{}-{}".format(year, year + 1)
 
-    html_path = path.join(HTML_DIRECTORY, fname + ".html")
-    record_path = path.join(RECORD_DIRECTORY, fname + ".csv")
-    elo_path = path.join(ELO_DIRECTORY, fname + ".csv")
+        html_path = path.join(HTML_DIRECTORY, fname + ".html")
+        record_path = path.join(RECORD_DIRECTORY, fname + ".csv")
 
-    try:
-        f = open(html_path)
+        try:
+            f = open(html_path)
 
-        print("Read file", html_path)
-    except FileNotFoundError:
-        url = "https://www.saa-sports.com/sports/wvball/20{}-{}/schedule".format(year, year + 1)
-        print("GET", url)
+            print("Read file", html_path)
+        except FileNotFoundError:
+            url = "https://www.saa-sports.com/sports/wvball/20{}-{}/schedule".format(year, year + 1)
+            print("GET", url)
 
-        r = requests.get(url, headers={"User-Agent": USER_AGENT})
-        print(r.status_code)
+            r = requests.get(url, headers={"User-Agent": USER_AGENT})
+            print(r.status_code)
 
-        if r.status_code != 200:
-            print("error with", url)
-            continue
+            if r.status_code != 200:
+                print("error with", url)
+                continue
 
-        with open(html_path, "w") as f:
-            f.write(r.text)
+            with open(html_path, "w") as f:
+                f.write(r.text)
 
-        print("Wrote", html_path)
-        f = open(html_path)
+            print("Wrote", html_path)
+            f = open(html_path)
 
-    print("Souping")
-    text = f.read()
-    f.close()
-    soup = BeautifulSoup(text)
+        print("Souping")
+        text = f.read()
+        f.close()
+        soup = BeautifulSoup(text)
 
-    conf_markers = soup.find_all(title="Conference")
-    conf_rows = [t.parent.parent for t in conf_markers]
+        conf_markers = soup.find_all(title="Conference")
+        conf_rows = [t.parent.parent for t in conf_markers]
 
-    print("Parsing rows")
-    with open(record_path, "w") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=CSV_FIELDNAMES)
-        writer.writeheader()
+        print("Parsing rows")
+        with open(record_path, "w") as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=CSV_FIELDNAMES)
+            writer.writeheader()
 
-        for row in conf_rows:
-            date_match = DATE_RE.match(row.ul.li.a["aria-label"])
-            month, day = date_match.group(1), date_match.group(2)
-            month = MONTH_DICT[month]
+            for row in conf_rows:
+                date_match = DATE_RE.match(row.ul.li.a["aria-label"])
+                month, day = date_match.group(1), date_match.group(2)
+                month = MONTH_DICT[month]
 
-            names = row.find_all(class_="team-name")
-            home = names[0].text
-            away = names[1].text
+                names = row.find_all(class_="team-name")
+                home = names[0].text
+                away = names[1].text
 
-            # Fix some data issues.
-            if home == "Birmingham Southern":
-                home = "Birmingham-Southern"
+                # Fix some data issues.
+                if home == "Birmingham Southern":
+                    home = "Birmingham-Southern"
 
-            if away == "Birmingham Southern":
-                away = "Birmingham-Southern"
+                if away == "Birmingham Southern":
+                    away = "Birmingham-Southern"
 
-            date = "20{}-{}-{}".format(year, month, day)
+                date = "20{}-{}-{}".format(year, month, day)
 
-            results = row.find_all(class_="e_result")
-            home_score = int(results[0].text.strip())
-            away_score = int(results[1].text.strip())
+                results = row.find_all(class_="e_result")
+                home_score = int(results[0].text.strip())
+                away_score = int(results[1].text.strip())
 
-            writer.writerow({"home": home, "away": away, "home-score": home_score, "away-score": away_score, "date": date})
+                writer.writerow({"home": home, "away": away, "home-score": home_score, "away-score": away_score, "date": date})
 
-    print("Wrote", record_path)
-    print("Done")
+        print("Wrote", record_path)
+        print("Done")

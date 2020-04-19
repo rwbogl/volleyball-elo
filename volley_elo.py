@@ -40,11 +40,14 @@ Okay, so just record the dates of the games along with the results. That way
 you can graph things with respect to time later, if you want.
 """
 
-import elo
-import csv
+from volley_scrape import RECORD_DIRECTORY
 from datetime import timedelta
 from datetime import datetime
+import os.path as path
+import elo
+import csv
 
+ELO_DIRECTORY = "data/elo"
 
 NAMES = ['Berry', 'Birmingham-Southern', 'Hendrix', 'Millsaps', 'Oglethorpe',
         'Centre', 'Sewanee', 'Rhodes']
@@ -56,11 +59,13 @@ def record_season(teams, year, K):
     for team in teams.values():
         team.elo -= (team.elo - 1500) / 4
 
-    fname_in = "data/volley-{}-{}.csv".format(year, year + 1)
-    fname_out = "data/elo/volley-{}-{}-elo.csv".format(year, year + 1)
+    record_fname = "volley-{}-{}.csv".format(year, year + 1)
+    elo_fname = "volley-{}-{}-elo.csv".format(year, year + 1)
+    path_in = path.join(RECORD_DIRECTORY, record_fname)
+    path_out = path.join(ELO_DIRECTORY, elo_fname)
 
-    csv_in = open(fname_in)
-    csv_out = open(fname_out, "w")
+    csv_in = open(path_in)
+    csv_out = open(path_out, "w")
 
     out_names = ["name", "elo", "date"]
 
