@@ -54,10 +54,10 @@ NAMES = ['Berry', 'Birmingham-Southern', 'Hendrix', 'Millsaps', 'Oglethorpe',
 TEAMS = {name: elo.Team(name, 1500) for name in NAMES}
 
 
-def record_season(teams, year, K):
+def record_season(teams, year, K, R):
     # Regress teams back towards the mean slightly.
     for team in teams.values():
-        team.elo -= (team.elo - 1500) / 4
+        team.elo -= (team.elo - 1500) / R
 
     record_fname = "volley-{}-{}.csv".format(year, year + 1)
     elo_fname = "volley-{}-{}-elo.csv".format(year, year + 1)
@@ -103,6 +103,6 @@ def record_season(teams, year, K):
     csv_out.close()
 
 
-def record_seasons(start, stop, K=40):
+def record_seasons(start, stop, K=40, R=3):
     for year in range(start, stop):
-        record_season(TEAMS, year, K)
+        record_season(TEAMS, year, K, R)
