@@ -11,10 +11,10 @@ import calendar
 import csv
 import re
 
-month_dict = {v: k for k, v in enumerate(calendar.month_name)}
-user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+MONTH_DICT = {v: k for k, v in enumerate(calendar.month_name)}
+USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 
-date_re = re.compile("Women's Volleyball event: (\w*) (\d*) .*")
+DATE_RE = re.compile("Women's Volleyball event: (\w*) (\d*) .*")
 
 for year in range(12, 20):
     fname = "data/volley-{}-{}".format(year, year + 1)
@@ -28,7 +28,7 @@ for year in range(12, 20):
         url = "https://www.saa-sports.com/sports/wvball/20{}-{}/schedule".format(year, year + 1)
         print("GET", url)
 
-        r = requests.get(url, headers={"User-Agent": user_agent})
+        r = requests.get(url, headers={"User-Agent": USER_AGENT})
         print(r.status_code)
 
         if r.status_code != 200:
@@ -56,9 +56,9 @@ for year in range(12, 20):
         writer.writeheader()
 
         for row in conf_rows:
-            date_match = date_re.match(row.ul.li.a["aria-label"])
+            date_match = DATE_RE.match(row.ul.li.a["aria-label"])
             month, day = date_match.group(1), date_match.group(2)
-            month = month_dict[month]
+            month = MONTH_DICT[month]
 
             names = row.find_all(class_="team-name")
             home = names[0].text
