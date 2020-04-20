@@ -132,3 +132,6 @@ def record_season(teams, year, K, R):
 def record_seasons(start, stop, K=40, R=3):
     for year in range(start, stop):
         record_season(TEAMS, year, K, R)
+        for name, team in TEAMS.items():
+            team.wins = 0
+            team.losses = 0

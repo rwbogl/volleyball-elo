@@ -54,12 +54,17 @@ if __name__ == "__main__":
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower right")
 
-    fig = plt.figure()
-    df = analysis.get_match_df(args.stop - 2)
-    df["random_choice"] = pd.DataFrame(np.random.randint(2, size=(len(df), 1)))
+    # Brier score plots.
+    for year in range(args.start + 2, args.stop):
+        fig = plt.figure()
+        df = analysis.get_match_df(args.stop - 2)
+        df["random_choice"] = pd.DataFrame(np.random.randint(2, size=(len(df), 1)))
+        df["record-predict"] = (df["home-wins"] >= df["away-wins"]).apply(int)
 
-    analysis.plot_brier(df, "home-won", "elo-win-prob", ax=plt.gca())
-    analysis.plot_brier(df, "home-won", "random_choice", ax=plt.gca())
-    fig.legend()
+        analysis.plot_brier(df, "home-won", "elo-win-prob", ax=plt.gca())
+        analysis.plot_brier(df, "home-won", "random_choice", ax=plt.gca())
+        analysis.plot_brier(df, "home-won", "record-predict", ax=plt.gca())
+        fig.legend()
+        plt.title("Brier scores for 20{}-{} season".format(year, year + 1))
 
     plt.show()
