@@ -102,15 +102,17 @@ def record_season(teams, year, K, R):
         home = teams[row["home"]]
         away = teams[row["away"]]
 
-        match = elo.Match(home, away, row["home-score"], row["away-score"], row["postseason"])
+        row["home"] = home
+        row["away"] = away
+        match = elo.Match(**row)
 
-        row["home-elo"] = home.elo
-        row["away-elo"] = away.elo
-        row["elo-win-prob"] = match.win_prob
-        row["home-wins"] = home.wins
-        row["home-losses"] = home.losses
-        row["away-wins"] = away.wins
-        row["away-losses"] = away.losses
+        row["home_elo"] = home.elo
+        row["away_elo"] = away.elo
+        row["elo_win_prob"] = match.win_prob
+        row["home_wins"] = home.wins
+        row["home_losses"] = home.losses
+        row["away_wins"] = away.wins
+        row["away_losses"] = away.losses
 
         match.update_teams(K)
 

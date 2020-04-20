@@ -19,7 +19,7 @@ MONTH_DICT = {v: k for k, v in enumerate(calendar.month_name)}
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 
 # I'm not sure if we'll use all these fieldnames, but I'll add them for now.
-CSV_FIELDNAMES = ["home", "away", "home-score", "away-score", "home-wins", "home-losses", "away-wins", "away-losses", "home-elo", "away-elo", "elo-win-prob", "postseason", "date"]
+CSV_FIELDNAMES = ["home", "away", "home_score", "away_score", "home_wins", "home_losses", "away_wins", "away_losses", "home_elo", "away_elo", "elo_win_prob", "postseason", "date"]
 
 HTML_DIRECTORY = "data/html"
 RECORD_DIRECTORY = "data/historical"
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
                 postseason = True if post == "post" else False
 
-                writer.writerow({"home": home, "away": away, "home-score": home_score, "away-score": away_score, "postseason": postseason, "date": date})
+                writer.writerow({"home": home, "away": away, "home_score": home_score, "away_score": away_score, "postseason": postseason, "date": date})
 
         print("Wrote", record_path)
         print("Done")

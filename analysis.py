@@ -14,7 +14,7 @@ def get_elo_df(year):
 def get_match_df(year):
     fpath = path.join(ELO_MATCH_DIR, "volley-{}-{}-elo.csv".format(year, year + 1))
     df = pd.read_csv(fpath)
-    df["home-won"] = df["home-score"] == 3
+    df["home_won"] = df["home_score"] == 3
     return df
 
 
@@ -29,7 +29,6 @@ def plot_elo(year, ax):
     match_df["date"] = pd.to_datetime(match_df["date"])
 
     postseason_df = match_df[match_df.postseason]
-    print("year:", year)
     if not postseason_df.empty:
         print(postseason_df.iloc[0].date)
         ax.axvline(postseason_df.iloc[0].date, color="k", label="Postseason")

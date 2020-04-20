@@ -17,23 +17,34 @@ class Team:
 
 
 class Match:
-    def __init__(self, home, away, home_score, away_score, postseason, home_advantage=0):
+    def __init__(self, home, away, home_score, away_score, **kwargs):
+        """
+            Supported kwargs:
+
+                :home_advantage: Additive Elo constant for home advantage.
+
+                :postseason: Boolean postseason flag.
+
+                :postseason_multiplier: Constant factor for postseason Elo.
+
+                :set_map: Dictionary mapping number of sets (3, 4, 5) to
+                          constant Elo mutliplier.
+
+        """
         self.home = home
         self.away = away
         self.home_score = int(home_score)
         self.away_score = int(away_score)
-        self.sets = home_score + away_score
+        self.sets = self.home_score + self.away_score
         self.winner = home if self.home_score == 3 else away
         self.home_win_val = 1 if self.home_score == 3 else 0
-        self.home_advantage = home_advantage
-        self.postseason = postseason
 
-        if self.sets == 3:
-            self.set_factor = 1.2
-        elif self.sets == 4:
-            self.set_factor = 1
-        else:
-            self.set_factor = 0.9
+        self.home_advantage = kwargs.get("home_advantage", 0)
+        self.postseason = kwargs.get("postseason", False)
+        self.postseason_multiplier = kwargs.get("postseason_multiplier", 1.2)
+        self.set_map = kwargs.get("set_map", {3: 1.2, 4: 1, 5: 0.9})
+
+        self.set_factor = self.set_map[self.sets]
 
     @property
     def win_prob(self):

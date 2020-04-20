@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     for year in range(args.start + 2, args.stop):
         match_df = analysis.get_match_df(year)
-        brier = analysis.brier_score(match_df, "home-won", "elo-win-prob")
+        brier = analysis.brier_score(match_df, "home_won", "elo_win_prob")
         print("20{}-{} Brier score:".format(year, year + 1), brier.sum())
         print("20{}-{} Brier description:".format(year, year + 1))
         print(brier.describe())
@@ -59,11 +59,11 @@ if __name__ == "__main__":
         fig = plt.figure()
         df = analysis.get_match_df(args.stop - 2)
         df["random_choice"] = pd.DataFrame(np.random.randint(2, size=(len(df), 1)))
-        df["record-predict"] = (df["home-wins"] >= df["away-wins"]).apply(int)
+        df["record_predict"] = (df["home_wins"] >= df["away_wins"]).apply(int)
 
-        analysis.plot_brier(df, "home-won", "elo-win-prob", ax=plt.gca())
-        analysis.plot_brier(df, "home-won", "random_choice", ax=plt.gca())
-        analysis.plot_brier(df, "home-won", "record-predict", ax=plt.gca())
+        analysis.plot_brier(df, "home_won", "elo_win_prob", ax=plt.gca())
+        analysis.plot_brier(df, "home_won", "random_choice", ax=plt.gca())
+        analysis.plot_brier(df, "home_won", "record_predict", ax=plt.gca())
         fig.legend()
         plt.title("Brier scores for 20{}-{} season".format(year, year + 1))
 
