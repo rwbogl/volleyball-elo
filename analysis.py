@@ -3,7 +3,7 @@
 import pandas as pd
 import os.path as path
 from volley_elo import ELO_TEAMS_DIR, ELO_MATCH_DIR
-import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def get_elo_df(year):
@@ -18,21 +18,17 @@ def get_match_df(year):
     return df
 
 
-def plot_elo(year):
+def plot_elo(year, ax):
     df = get_elo_df(year)
-    plt.style.use("seaborn-darkgrid")
-
-    fig = plt.figure()
-    ax = plt.gca()
 
     df["date"] = pd.to_datetime(df["date"])
 
     for name, group in df.groupby("name"):
-        group.plot(label=name, x="date", y="elo", ax=ax)
+        plot = sns.lineplot(label=name, x="date", y="elo", ax=ax, legend=False, data=group)
 
-    plt.title("Elo rankings for 20{}-{} season".format(year, year + 1))
-    plt.axhline(1500, color="k", linestyle="--", label='"Average"')
-    plt.legend()
+    ax.set_title("Elo rankings for 20{}-{} season".format(year, year + 1))
+    ax.axhline(1500, color="k", linestyle="--", label='"Average"')
+    return plot
 
 
 def brier_score(df, result_col, predict_col):
