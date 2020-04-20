@@ -7,6 +7,8 @@ import matplotlib
 import volley_elo
 import analysis
 import math
+import pandas as pd
+import numpy as np
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze the Elo of women's volleyball teams.")
@@ -52,6 +54,12 @@ if __name__ == "__main__":
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower right")
 
-    analysis.plot_brier(args.stop - 2, "home-won", "elo-win-prob")
+    fig = plt.figure()
+    df = analysis.get_match_df(args.stop - 2)
+    df["random_choice"] = pd.DataFrame(np.random.randint(2, size=(len(df), 1)))
+
+    analysis.plot_brier(df, "home-won", "elo-win-prob", ax=plt.gca())
+    analysis.plot_brier(df, "home-won", "random_choice", ax=plt.gca())
+    fig.legend()
 
     plt.show()
