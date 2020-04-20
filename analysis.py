@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import pandas as pd
-import os.path as path
 from volley_elo import ELO_TEAMS_DIR, ELO_MATCH_DIR
+import matplotlib.pyplot as plt
+import os.path as path
 import seaborn as sns
+import pandas as pd
 
 
 def get_elo_df(year):
@@ -43,9 +44,32 @@ def brier_score(df, result_col, predict_col):
         Brier scores are in [0, 1], with 0 being the best and 1 being the
         worst. That's a terrible idea for a "score."
 
-        Flip it so that 1 is the best and 0 is the worst, then scale everything
-        to lie in [0, 100]. Say that you only get points if you're in the top
-        25%, otherwise you lose points. In other words, subtract 75 from the
-        result.
+        Flip it so that 1 is the best and 0 is the worst, then linearly scale
+        everything to lie in [0, 100]. We want to say that a prediction of 1 /
+        2 gives you zero points, and we'll achieve this by an additive shift.
+        Thus:
+
+                100 (1 - (1 / 2)^2) + c = 0
+                                      c = -75.
+
+        We subtract off 75 points. So, bets near 50/50 will get nearly nothing,
+
     """
     return 100 * (1 - (df[result_col] - df[predict_col])**2) - 75
+
+
+def plot_brier(year, result_col, predict_col):
+    """TODO: Docstring for plot_brier.
+
+    :year: TODO
+    :returns: TODO
+
+    """
+    plt.figure()
+    df = get_match_df(year)
+    df["brier"] = brier_score(df, result_col, predict_col)
+
+    df["brier"].cumsum().plot()
+    df["brier"].cumsum().rolling(6).mean().plot()
+    df["bpos"] = df["brier"] > 0
+    df["brier"].plot.bar(color=df["bpos"].map({True: "C1", False: "C2"}))

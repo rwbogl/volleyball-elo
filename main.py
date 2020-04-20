@@ -52,4 +52,6 @@ if __name__ == "__main__":
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower right")
 
+    analysis.plot_brier(args.stop - 2, "home-won", "elo-win-prob")
+
     plt.show()
