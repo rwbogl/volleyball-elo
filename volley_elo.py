@@ -42,6 +42,7 @@ you can graph things with respect to time later, if you want.
 
 from volley_scrape import RECORD_DIRECTORY, CSV_FIELDNAMES
 from datetime import datetime, timedelta
+from utils import CONF_NAMES
 import os.path as path
 import elo
 import csv
@@ -51,9 +52,7 @@ ELO_TEAMS_DIR = path.join(ELO_DIRECTORY, "teams/")
 ELO_MATCH_DIR = path.join(ELO_DIRECTORY, "matches/")
 TEAMS_FIELDNAMES = ["name", "wins", "losses", "elo", "date"]
 
-NAMES = ['Berry', 'Birmingham-Southern', 'Hendrix', 'Millsaps', 'Oglethorpe',
-        'Centre', 'Sewanee', 'Rhodes']
-TEAMS = {name: elo.Team(name, 1500) for name in NAMES}
+TEAMS = {name: elo.Team(name, 1500) for name in CONF_NAMES}
 
 
 def record_season(teams, year, K, R):
@@ -103,7 +102,7 @@ def record_season(teams, year, K, R):
         home = teams[row["home"]]
         away = teams[row["away"]]
 
-        match = elo.Match(home, away, row["home-score"], row["away-score"])
+        match = elo.Match(home, away, row["home-score"], row["away-score"], row["postseason"])
 
         row["home-elo"] = home.elo
         row["away-elo"] = away.elo

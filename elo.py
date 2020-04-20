@@ -17,7 +17,7 @@ class Team:
 
 
 class Match:
-    def __init__(self, home, away, home_score, away_score, home_advantage=0):
+    def __init__(self, home, away, home_score, away_score, postseason, home_advantage=0):
         self.home = home
         self.away = away
         self.home_score = int(home_score)
@@ -26,6 +26,7 @@ class Match:
         self.winner = home if self.home_score == 3 else away
         self.home_win_val = 1 if self.home_score == 3 else 0
         self.home_advantage = home_advantage
+        self.postseason = postseason
 
         if self.sets == 3:
             self.set_factor = 1.2
@@ -46,12 +47,17 @@ class Match:
             d = self.home.elo + self.home_advantage - self.away.elo
         else:
             d = self.away.elo - (self.home.elo + self.home_advantage)
+
         # Stolen from Nate Silver.
         # (Not the exact numbers.)
         # (https://fivethirtyeight.com/features/introducing-nfl-elo-ratings/)
         underdog_factor = 1
 
         factor = K * self.set_factor * underdog_factor
+
+        if self.postseason:
+            factor *= 1.3
+
         return factor * (self.home_win_val - self.win_prob)
 
     def update_teams(self, K):
