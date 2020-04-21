@@ -27,6 +27,8 @@ class Match:
 
                 :postseason_multiplier: Constant factor for postseason Elo.
 
+                :K: Elo K-factor.
+
                 :set_map: Dictionary mapping number of sets (3, 4, 5) to
                           constant Elo mutliplier.
 
@@ -42,6 +44,7 @@ class Match:
         self.home_advantage = kwargs.get("home_advantage", 0)
         self.postseason = kwargs.get("postseason", False)
         self.postseason_multiplier = kwargs.get("postseason_multiplier", 1.2)
+        self.K = kwargs.get("K", 40)
         self.set_map = kwargs.get("set_map", {3: 1.2, 4: 1, 5: 0.9})
 
         self.set_factor = self.set_map[self.sets]
@@ -52,7 +55,7 @@ class Match:
         d = self.home.elo + self.home_advantage - self.away.elo
         return 1 / (1 + 10**(-d / 400))
 
-    def home_elo_change(self, K):
+    def home_elo_change(self):
         """Return the change in Elo for the home team from this match."""
         if self.home_score == 3:
             d = self.home.elo + self.home_advantage - self.away.elo
@@ -64,14 +67,14 @@ class Match:
         # (https://fivethirtyeight.com/features/introducing-nfl-elo-ratings/)
         underdog_factor = 1
 
-        factor = K * self.set_factor * underdog_factor
+        factor = self.K * self.set_factor * underdog_factor
 
         if self.postseason:
             factor *= 1.3
 
         return factor * (self.home_win_val - self.win_prob)
 
-    def update_teams(self, K):
+    def update_teams(self):
         """
         Update the records and Elo ratings of the involved teams based on the
         match.
@@ -79,8 +82,8 @@ class Match:
         Note that this could be called repeatedly with different effects each
         time.
         """
-        self.home.elo += self.home_elo_change(K)
-        self.away.elo -= self.home_elo_change(K)
+        self.home.elo += self.home_elo_change()
+        self.away.elo -= self.home_elo_change()
 
         if self.home_score == 3:
             self.home.wins += 1

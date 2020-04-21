@@ -44,6 +44,7 @@ from volley_scrape import RECORD_DIRECTORY, CSV_FIELDNAMES
 from datetime import datetime, timedelta
 from utils import CONF_NAMES
 import os.path as path
+import pandas as pd
 import elo
 import csv
 
@@ -53,6 +54,40 @@ ELO_MATCH_DIR = path.join(ELO_DIRECTORY, "matches/")
 TEAMS_FIELDNAMES = ["name", "wins", "losses", "elo", "date"]
 
 TEAMS = {name: elo.Team(name, 1500) for name in CONF_NAMES}
+
+
+def create_elo_columns(teams, df, **kwargs):
+    """Create Elo-related columns (home/away Elo, win-probability).
+
+    :teams: TODO
+    :df: TODO
+    :**kwargs: TODO
+    :returns: TODO
+
+    Modifies teams unless `copy=True` is passed.
+
+    """
+    home_elo = []
+    away_elo = []
+    win_prob = []
+
+    copy = kwargs.get("copy", False)
+
+    if copy:
+        teams = {name: elo.Team(name, team.elo) for name, team in teams.items()}
+
+    for row in df.itertuples():
+        home = teams[row.home]
+        away = teams[row.away]
+
+        home_elo.append(home.elo)
+        away_elo.append(away.elo)
+
+        match = elo.Match(home, away, row.home_score, row.away_score, **kwargs)
+        win_prob.append(match.win_prob)
+        match.update_teams()
+
+    return pd.DataFrame({"home_elo": home_elo, "away_elo": away_elo, "win_prob": win_prob})
 
 
 def record_season(teams, year, K, R):
@@ -104,7 +139,7 @@ def record_season(teams, year, K, R):
 
         row["home"] = home
         row["away"] = away
-        match = elo.Match(**row)
+        match = elo.Match(**row, K=K)
 
         row["home_elo"] = home.elo
         row["away_elo"] = away.elo
@@ -114,8 +149,10 @@ def record_season(teams, year, K, R):
         row["away_wins"] = away.wins
         row["away_losses"] = away.losses
 
-        match.update_teams(K)
+        match.update_teams()
 
+        row["home"] = home.name
+        row["away"] = away.name
         match_writer.writerow(row)
 
         teams_writer.writerow({"name": home.name, "wins": home.wins, "losses": home.losses, "elo": home.elo, "date": row["date"]})
@@ -137,3 +174,10 @@ def record_seasons(start, stop, K=40, R=3):
         for name, team in TEAMS.items():
             team.wins = 0
             team.losses = 0
+
+
+if __name__ == "__main__":
+    import analysis
+    df = analysis.get_match_df(19)
+    print(create_elo_columns(TEAMS, df, copy=True).iloc[0])
+    print(create_elo_columns(TEAMS, df, copy=True).iloc[0])
