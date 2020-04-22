@@ -18,9 +18,9 @@ def get_match_df(year):
     return df
 
 
-def plot_elo(match_df, ax):
+def plot_elo(match_df, ax, elo_name="elo"):
     year = match_df.iloc[0].date.year
-    df = team_elo_df(match_df)
+    df = team_elo_df(match_df, elo_name="elo")
 
     df.plot(marker="o", lw=3, ax=ax, legend=False)
 

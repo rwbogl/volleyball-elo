@@ -55,15 +55,15 @@ TEAMS_FIELDNAMES = ["name", "wins", "losses", "elo", "date"]
 TEAMS = {name: elo.Team(name, 1500) for name in CONF_NAMES}
 
 
-def create_match_elo_columns(teams, df, name="elo", **kwargs):
-    """Create Elo-related columns (home/away Elo, win-probability).
+def add_match_elo_columns(teams, df, name="elo", **kwargs):
+    """Add Elo-related columns (home/away Elo, win-probability).
 
     :teams: TODO
     :df: TODO
     :**kwargs: TODO
     :returns: TODO
 
-    Modifies teams unless `copy=True` is passed.
+    Modifies `teams` unless `copy=True` is passed. Overwrites columns of `df`.
 
     """
     home_elo = []
@@ -86,12 +86,15 @@ def create_match_elo_columns(teams, df, name="elo", **kwargs):
         win_prob.append(match.win_prob)
         match.update_teams()
 
-    return pd.DataFrame({"home_{}".format(name): home_elo,
-                         "away_{}".format(name): away_elo,
-                         "win_prob_{}".format(name): win_prob})
+    update = pd.DataFrame({"home_{}".format(name): home_elo,
+                           "away_{}".format(name): away_elo,
+                           "win_prob_{}".format(name): win_prob})
+
+    for column in update.columns:
+        df[column] = update[column]
 
 
-def team_elo_df(match_df):
+def team_elo_df(match_df, elo_name="elo"):
     """TODO: Docstring for .
 
     :arg1: TODO
@@ -107,8 +110,8 @@ def team_elo_df(match_df):
         if row.away not in teams:
             teams[row.away] = dict()
 
-        teams[row.home][row.date] = row["home_elo"]
-        teams[row.away][row.date] = row["away_elo"]
+        teams[row.home][row.date] = row["home_{}".format(elo_name)]
+        teams[row.away][row.date] = row["away_{}".format(elo_name)]
 
     # Not every team plays on every day, so interpolate the gaps linearly.
     df = pd.DataFrame(teams).sort_index().interpolate(method="linear")
@@ -151,9 +154,7 @@ def record_season(teams, year, R, elo_name="elo", **kwargs):
 
     df = get_historical_df(year)
 
-    elo_columns = create_match_elo_columns(teams, df, elo_name, **kwargs)
-    for name in elo_columns.columns:
-        df[name] = elo_columns[name]
+    add_match_elo_columns(teams, df, elo_name, **kwargs)
 
     # df["home_elo{}".format(elo_suffix)] = elo_columns["home_elo"]
     # df["away_elo{}".format(elo_suffix)] = elo_columns["away_elo"]
