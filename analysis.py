@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from volley_elo import ELO_TEAMS_DIR, ELO_MATCH_DIR
+from volley_elo import ELO_TEAMS_DIR, ELO_MATCH_DIR, team_elo_df
 import os.path as path
 import seaborn as sns
 import pandas as pd
@@ -18,24 +18,19 @@ def get_match_df(year):
     return df
 
 
-def plot_elo(year, ax):
-    df = get_elo_df(year)
-    df["date"] = pd.to_datetime(df["date"])
+def plot_elo(match_df, ax):
+    year = match_df.iloc[0].date.year
+    df = team_elo_df(match_df)
 
-    for name, group in df.groupby("name"):
-        plot = sns.lineplot(label=name, x="date", y="elo", ax=ax, legend=False, data=group, err_style="band")
-
-    match_df = get_match_df(year)
-    match_df["date"] = pd.to_datetime(match_df["date"])
+    df.plot(marker="o", lw=3, ax=ax, legend=False)
 
     postseason_df = match_df[match_df.postseason]
     if not postseason_df.empty:
         print(postseason_df.iloc[0].date)
         ax.axvline(postseason_df.iloc[0].date, color="k", label="Postseason")
 
-    ax.set_title("Elo rankings for 20{}-{} season".format(year, year + 1))
+    ax.set_title("Elo rankings for {}-{} season".format(year, year + 1))
     ax.axhline(1500, color="k", linestyle="--", label='"Average"')
-    return plot
 
 
 def brier_score(df, result_col, predict_col):

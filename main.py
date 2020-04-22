@@ -33,12 +33,7 @@ if __name__ == "__main__":
 
     This should get everything below working again.
     """
-    dfs = volley_elo.record_seasons(args.start, args.stop, args.K, elo_suffix="base_elo")
-
-    # This works right now, but only because we pregenerated the csv files in
-    # an earlier commit. The plan is to get this all in dataframes in a later
-    # commit.
-    teams_df = analysis.get_elo_df(args.stop - 1)
+    dfs = volley_elo.record_seasons(args.start, args.stop, args.K)
 
     n_cols = 3
     n_rows = math.ceil((args.stop - args.start - 2) / float(n_cols))
@@ -54,14 +49,14 @@ if __name__ == "__main__":
     for year in range(args.start + 2, args.stop):
         df = dfs[year]
 
-        brier = analysis.brier_score(df, "home_won", "win_prob_base_elo")
+        brier = analysis.brier_score(df, "home_won", "win_prob")
         print("20{}-{} Brier score:".format(year, year + 1), brier.sum())
         print("20{}-{} Brier description:".format(year, year + 1))
         print(brier.describe())
 
         k = year - args.start - 2
         x, y = k // n_cols, k % n_cols
-        analysis.plot_elo(year, ax=axes[x, y])
+        analysis.plot_elo(df, ax=axes[x, y])
         axes[x, y].set_xlabel("")
         plt.sca(axes[x, y])
         plt.xticks(rotation=45)

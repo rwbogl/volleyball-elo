@@ -89,6 +89,32 @@ def create_match_elo_columns(teams, df, **kwargs):
     return pd.DataFrame({"home_elo": home_elo, "away_elo": away_elo, "win_prob": win_prob})
 
 
+def team_elo_df(match_df):
+    """TODO: Docstring for .
+
+    :arg1: TODO
+    :returns: TODO
+
+    """
+    teams = dict()
+
+    for k, row in match_df.iterrows():
+        if row.home not in teams:
+            teams[row.home] = dict()
+
+        if row.away not in teams:
+            teams[row.away] = dict()
+
+        teams[row.home][row.date] = row["home_elo"]
+        teams[row.away][row.date] = row["away_elo"]
+
+    # Not every team plays on every day, so interpolate the gaps linearly.
+    df = pd.DataFrame(teams).sort_index().interpolate(method="linear")
+
+    # Sort the columns alphabetically so that legends are always consistent.
+    return df.sort_index(axis=1)
+
+
 def get_historical_df(year):
     """TODO: Docstring for get_historical_df.
 
@@ -107,7 +133,7 @@ def get_historical_df(year):
     return df
 
 
-def record_season(teams, year, elo_suffix, R, **kwargs):
+def record_season(teams, year, R, elo_suffix="", **kwargs):
     """Record a single volleyball season with Elo tracking.
 
     :teams: Dictionary of (name, elo.Team) pairs.
@@ -124,9 +150,9 @@ def record_season(teams, year, elo_suffix, R, **kwargs):
     df = get_historical_df(year)
 
     elo_columns = create_match_elo_columns(teams, df, **kwargs)
-    df["home_elo_{}".format(elo_suffix)] = elo_columns["home_elo"]
-    df["away_elo_{}".format(elo_suffix)] = elo_columns["away_elo"]
-    df["win_prob_{}".format(elo_suffix)] = elo_columns["win_prob"]
+    df["home_elo{}".format(elo_suffix)] = elo_columns["home_elo"]
+    df["away_elo{}".format(elo_suffix)] = elo_columns["away_elo"]
+    df["win_prob{}".format(elo_suffix)] = elo_columns["win_prob"]
 
     # For the team-Elo df when we figure that out.
     start_date = df["date"].min()
@@ -135,7 +161,7 @@ def record_season(teams, year, elo_suffix, R, **kwargs):
     return df
 
 
-def record_seasons(start, stop, K=40, R=3, elo_suffix="elo", reset=False):
+def record_seasons(start, stop, K=40, R=3, elo_suffix="", reset=False):
     dfs = dict()
 
     if reset:
@@ -145,7 +171,7 @@ def record_seasons(start, stop, K=40, R=3, elo_suffix="elo", reset=False):
             team.elo = 1500
 
     for year in range(start, stop):
-        dfs[year] = record_season(TEAMS, year, elo_suffix, R, K=K)
+        dfs[year] = record_season(TEAMS, year, R, elo_suffix, K=K)
         for name, team in TEAMS.items():
             team.wins = 0
             team.losses = 0
@@ -154,7 +180,5 @@ def record_seasons(start, stop, K=40, R=3, elo_suffix="elo", reset=False):
 
 
 if __name__ == "__main__":
-    import analysis
-    df = analysis.get_match_df(19)
-    print(create_match_elo_columns(TEAMS, df, copy=True).iloc[0])
-    print(create_match_elo_columns(TEAMS, df, copy=True).iloc[0])
+    dfs = record_seasons(12, 20)
+    team_dfs = {year: team_elo_df(d) for year, d in dfs.items()}
