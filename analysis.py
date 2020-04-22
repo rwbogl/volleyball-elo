@@ -68,7 +68,7 @@ def plot_brier(df, result_col, predict_col, ax):
     """
     df["brier"] = brier_score(df, result_col, predict_col)
 
-    df["brier"].cumsum().plot(label=predict_col, ax=ax)
-    df["brier"].cumsum().rolling(7).mean().plot(label="", ax=ax)
+    df["brier"].cumsum().plot(label=predict_col, ax=ax, lw=3, marker="o")
+    df["brier"].cumsum().rolling(7).mean().plot(label="", ax=ax, lw=3, alpha=0.8)
     df["bpos"] = df["brier"] > 0
     # df["brier"].plot.bar(color=df["bpos"].map({True: "C2", False: "C1"}), ax=ax)
