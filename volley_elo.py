@@ -40,13 +40,12 @@ Okay, so just record the dates of the games along with the results. That way
 you can graph things with respect to time later, if you want.
 """
 
-from volley_scrape import RECORD_DIRECTORY, CSV_FIELDNAMES
-from datetime import datetime, timedelta
+from volley_scrape import RECORD_DIRECTORY
+from datetime import timedelta
 from utils import CONF_NAMES
 import os.path as path
 import pandas as pd
 import elo
-import csv
 
 ELO_DIRECTORY = "data/elo/"
 ELO_TEAMS_DIR = path.join(ELO_DIRECTORY, "teams/")
@@ -56,7 +55,7 @@ TEAMS_FIELDNAMES = ["name", "wins", "losses", "elo", "date"]
 TEAMS = {name: elo.Team(name, 1500) for name in CONF_NAMES}
 
 
-def create_elo_columns(teams, df, **kwargs):
+def create_match_elo_columns(teams, df, **kwargs):
     """Create Elo-related columns (home/away Elo, win-probability).
 
     :teams: TODO
@@ -90,94 +89,72 @@ def create_elo_columns(teams, df, **kwargs):
     return pd.DataFrame({"home_elo": home_elo, "away_elo": away_elo, "win_prob": win_prob})
 
 
-def record_season(teams, year, K, R):
+def get_historical_df(year):
+    """TODO: Docstring for get_historical_df.
+
+    :year: TODO
+    :returns: TODO
+
+    """
+    record_fname = "volley-{}-{}.csv".format(year, year + 1)
+    csv_path = path.join(RECORD_DIRECTORY, record_fname)
+    df = pd.read_csv(csv_path)
+
+    # Add some useful miscellaneous columns.
+    df["date"] = pd.to_datetime(df["date"])
+    df["home_won"] = df["home_score"] == 3
+
+    return df
+
+
+def record_season(teams, year, elo_suffix, R, **kwargs):
     """Record a single volleyball season with Elo tracking.
 
     :teams: Dictionary of (name, elo.Team) pairs.
     :year: Two-digit string year.
     :K: K-factor for Elo updating.
     :R: Regression proportion; teams lose an Rth of their distance to 1500 Elo.
-    :returns: List of paths to csv files with results.
+    :returns: A match dataframe with elo columns populated.
 
     """
     # Regress teams back towards the mean slightly.
     for team in teams.values():
         team.elo -= (team.elo - 1500) / R
 
-    record_fname = "volley-{}-{}.csv".format(year, year + 1)
-    elo_fname = "volley-{}-{}-elo.csv".format(year, year + 1)
-    path_in = path.join(RECORD_DIRECTORY, record_fname)
+    df = get_historical_df(year)
 
-    path_teams_out = path.join(ELO_TEAMS_DIR, elo_fname)
-    path_match_out = path.join(ELO_MATCH_DIR, elo_fname)
+    elo_columns = create_match_elo_columns(teams, df, **kwargs)
+    df["home_elo_{}".format(elo_suffix)] = elo_columns["home_elo"]
+    df["away_elo_{}".format(elo_suffix)] = elo_columns["away_elo"]
+    df["win_prob_{}".format(elo_suffix)] = elo_columns["win_prob"]
 
-    csv_in = open(path_in)
-    csv_match_out = open(path_match_out, "w")
-    csv_teams_out = open(path_teams_out, "w")
+    # For the team-Elo df when we figure that out.
+    start_date = df["date"].min()
+    preseason_date = start_date - timedelta(days=4)
 
-    reader = csv.DictReader(csv_in)
-    match_writer = csv.DictWriter(csv_match_out, fieldnames=CSV_FIELDNAMES)
-    teams_writer = csv.DictWriter(csv_teams_out, fieldnames=TEAMS_FIELDNAMES)
-
-    match_writer.writeheader()
-    teams_writer.writeheader()
-
-    # Get initial date and write "pre-season Elo" rows in the teams file.
-    first_row = next(reader)
-    start_date = datetime.strptime(first_row["date"], "%Y-%M-%d")
-    initial_date = start_date - timedelta(days=4)
-    initial_date = initial_date.strftime("%Y-%M-%d")
-
-    for name, team in teams.items():
-        teams_writer.writerow({"name": name, "wins": team.wins,
-                               "losses": team.losses, "elo": team.elo,
-                               "date": initial_date})
-
-    def handle_row(row):
-        home = teams[row["home"]]
-        away = teams[row["away"]]
-
-        row["home"] = home
-        row["away"] = away
-        match = elo.Match(**row, K=K)
-
-        row["home_elo"] = home.elo
-        row["away_elo"] = away.elo
-        row["elo_win_prob"] = match.win_prob
-        row["home_wins"] = home.wins
-        row["home_losses"] = home.losses
-        row["away_wins"] = away.wins
-        row["away_losses"] = away.losses
-
-        match.update_teams()
-
-        row["home"] = home.name
-        row["away"] = away.name
-        match_writer.writerow(row)
-
-        teams_writer.writerow({"name": home.name, "wins": home.wins, "losses": home.losses, "elo": home.elo, "date": row["date"]})
-        teams_writer.writerow({"name": away.name, "wins": away.wins, "losses": away.losses, "elo": away.elo, "date": row["date"]})
-
-    handle_row(first_row)
-
-    for row in reader:
-        handle_row(row)
-
-    csv_in.close()
-    csv_match_out.close()
-    csv_teams_out.close()
+    return df
 
 
-def record_seasons(start, stop, K=40, R=3):
+def record_seasons(start, stop, K=40, R=3, elo_suffix="elo", reset=False):
+    dfs = dict()
+
+    if reset:
+        for team in TEAMS.values():
+            team.wins = 0
+            team.losses = 0
+            team.elo = 1500
+
     for year in range(start, stop):
-        record_season(TEAMS, year, K, R)
+        dfs[year] = record_season(TEAMS, year, elo_suffix, R, K=K)
         for name, team in TEAMS.items():
             team.wins = 0
             team.losses = 0
+
+    return dfs
 
 
 if __name__ == "__main__":
     import analysis
     df = analysis.get_match_df(19)
-    print(create_elo_columns(TEAMS, df, copy=True).iloc[0])
-    print(create_elo_columns(TEAMS, df, copy=True).iloc[0])
+    print(create_match_elo_columns(TEAMS, df, copy=True).iloc[0])
+    print(create_match_elo_columns(TEAMS, df, copy=True).iloc[0])

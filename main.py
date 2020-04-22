@@ -21,8 +21,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    volley_elo.record_seasons(args.start, args.stop, args.K)
+    """
+    I want to get rid of the record_seasons function. Or at least make it stop
+    using goddamn CSV files.
 
+    Plan:
+        1. Read the historical match dataframes directly.
+        2. Populate the match-Elo data using the thing in volley_elo.py.
+        3. Derive the team_elo from that (just needs an extra row at the end,
+           basically).
+
+    This should get everything below working again.
+    """
+    dfs = volley_elo.record_seasons(args.start, args.stop, args.K, elo_suffix="base_elo")
+
+    # This works right now, but only because we pregenerated the csv files in
+    # an earlier commit. The plan is to get this all in dataframes in a later
+    # commit.
     teams_df = analysis.get_elo_df(args.stop - 1)
 
     n_cols = 3
@@ -37,8 +52,9 @@ if __name__ == "__main__":
     fig.tight_layout()
 
     for year in range(args.start + 2, args.stop):
-        match_df = analysis.get_match_df(year)
-        brier = analysis.brier_score(match_df, "home_won", "elo_win_prob")
+        df = dfs[year]
+
+        brier = analysis.brier_score(df, "home_won", "win_prob_base_elo")
         print("20{}-{} Brier score:".format(year, year + 1), brier.sum())
         print("20{}-{} Brier description:".format(year, year + 1))
         print(brier.describe())
