@@ -99,6 +99,18 @@ class Match:
         return "{} @ {}: {}-{}".format(self.home, self.away, self.home_score, self.away_score)
 
 
+def win_prob(home, away, home_advantage=0):
+    """TODO: Docstring for win_prob.
+
+    :home_elo: TODO
+    :away_elo: TODO
+    :returns: TODO
+
+    """
+    d = home.elo + home_advantage - away.elo
+    return 1 / (1 + 10**(-d / 400))
+
+
 if __name__ == "__main__":
     ou = Team("OU", 1500)
     ct = Team("CT", 1500)
