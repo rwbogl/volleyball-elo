@@ -41,7 +41,6 @@ you can graph things with respect to time later, if you want.
 """
 
 from volley_scrape import RECORD_DIRECTORY
-from datetime import timedelta
 from utils import CONF_NAMES
 import os.path as path
 import pandas as pd
@@ -88,7 +87,7 @@ def add_match_elo_columns(teams, df, name="elo", **kwargs):
 
     update = pd.DataFrame({"home_{}".format(name): home_elo,
                            "away_{}".format(name): away_elo,
-                           "win_prob_{}".format(name): win_prob})
+                           "{}_win_prob".format(name): win_prob})
 
     for column in update.columns:
         df[column] = update[column]
@@ -138,51 +137,30 @@ def get_historical_df(year):
     return df
 
 
-def record_season(teams, year, R, elo_name="elo", **kwargs):
-    """Record a single volleyball season with Elo tracking.
+def record_seasons(dfs, K=40, R=3, elo_name="elo", reset=False):
+    """
+    Record conseuctive Elo years.
 
-    :teams: Dictionary of (name, elo.Team) pairs.
-    :year: Two-digit string year.
+    :dfs: A list of match dataframes, taken to be consecutive seasons.
     :K: K-factor for Elo updating.
     :R: Regression proportion; teams lose an Rth of their distance to 1500 Elo.
-    :returns: A match dataframe with elo columns populated.
+    :returns: Nothing, but modifies dataframes in-place.
 
     """
-    # Regress teams back towards the mean slightly.
-    for team in teams.values():
-        team.elo -= (team.elo - 1500) / R
-
-    df = get_historical_df(year)
-
-    add_match_elo_columns(teams, df, elo_name, **kwargs)
-
-    # df["home_elo{}".format(elo_suffix)] = elo_columns["home_elo"]
-    # df["away_elo{}".format(elo_suffix)] = elo_columns["away_elo"]
-    # df["win_prob{}".format(elo_suffix)] = elo_columns["win_prob"]
-
-    # For the team-Elo df when we figure that out.
-    start_date = df["date"].min()
-    preseason_date = start_date - timedelta(days=4)
-
-    return df
-
-
-def record_seasons(start, stop, K=40, R=3, elo_name="elo", reset=False):
-    dfs = dict()
-
     if reset:
         for team in TEAMS.values():
-            team.wins = 0
-            team.losses = 0
             team.elo = 1500
 
-    for year in range(start, stop):
-        dfs[year] = record_season(TEAMS, year, R, elo_name, K=K)
+    for df in dfs:
         for name, team in TEAMS.items():
             team.wins = 0
             team.losses = 0
 
-    return dfs
+        # Regress teams back towards the mean slightly.
+        for team in TEAMS.values():
+            team.elo -= (team.elo - 1500) / R
+
+        add_match_elo_columns(TEAMS, df, elo_name, K=K)
 
 
 if __name__ == "__main__":
