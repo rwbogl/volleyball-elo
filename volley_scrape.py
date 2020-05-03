@@ -37,7 +37,7 @@ def get_soup(year):
 
 
 if __name__ == "__main__":
-    for year in range(12, 20):
+    for year in range(12, 21):
         fname = "volley-{}-{}".format(year, year + 1)
 
         html_path = path.join(HTML_DIRECTORY, fname + ".html")
@@ -84,9 +84,12 @@ if __name__ == "__main__":
             writer.writeheader()
 
             for post, row in rows:
-                date_match = DATE_RE.match(row.ul.li.a["aria-label"])
-                month, day = date_match.group(1), date_match.group(2)
-                month = MONTH_DICT[month]
+                try:
+                    date_match = DATE_RE.match(row.ul.li.a["aria-label"])
+                    month, day = date_match.group(1), date_match.group(2)
+                    month = MONTH_DICT[month]
+                except AttributeError:
+                    month, day = None, None
 
                 names = row.find_all(class_="team-name")
                 home = names[0].text
@@ -103,11 +106,18 @@ if __name__ == "__main__":
                 if away == "Birmingham Southern":
                     away = "Birmingham-Southern"
 
-                date = "20{}-{}-{}".format(year, month, day)
+                if month and day:
+                    date = "20{}-{}-{}".format(year, month, day)
+                else:
+                    date = None
 
-                results = row.find_all(class_="e_result")
-                home_score = int(results[0].text.strip())
-                away_score = int(results[1].text.strip())
+                try:
+                    results = row.find_all(class_="e_result")
+                    home_score = int(results[0].text.strip())
+                    away_score = int(results[1].text.strip())
+                except ValueError:
+                    home_score = None
+                    away_score = None
 
                 postseason = True if post == "post" else False
 
