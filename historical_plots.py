@@ -18,6 +18,8 @@ if __name__ == "__main__":
                         help='Two-digit year to stop analysis.')
     parser.add_argument('-K', type=int, nargs=1, default=40,
                         help='K-factor for Elo updating. Defaults to 40.')
+    parser.add_argument('-b', '--brier', type=bool, nargs=1, default=False,
+                        help='Plot Brier scores.')
 
     args = parser.parse_args()
 
@@ -39,8 +41,6 @@ if __name__ == "__main__":
     sns.set()
     fig, axes = plt.subplots(n_rows, n_cols)
 
-    fig.tight_layout()
-
     for year in range(args.start + 2, args.stop):
         df = dfs[year]
 
@@ -61,19 +61,22 @@ if __name__ == "__main__":
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower right")
 
-    # Brier score plots.
-    for year in range(args.start + 2, args.stop):
-        fig = plt.figure()
-        df = dfs[year]
-        df["random_choice"] = pd.DataFrame(np.random.randint(2, size=(len(df), 1)))
-        df["record_predict"] = (df["home_wins"] >= df["away_wins"]).apply(int)
+    plt.subplots_adjust(wspace=0.32, hspace=0.49)
 
-        plots.plot_brier(df, "home_won", "elo_win_prob", ax=plt.gca())
-        plots.plot_brier(df, "home_won", "big-elo_win_prob", ax=plt.gca())
-        plots.plot_brier(df, "home_won", "small-elo_win_prob", ax=plt.gca())
-        plots.plot_brier(df, "home_won", "massive-elo_win_prob", ax=plt.gca())
-        plots.plot_brier(df, "home_won", "record_predict", ax=plt.gca())
-        fig.legend(loc="center right")
-        plt.title("Brier scores for 20{}-{} season".format(year, year + 1))
+    # Brier score plots.
+    if args.brier:
+        for year in range(args.start + 2, args.stop):
+            fig = plt.figure()
+            df = dfs[year]
+            df["random_choice"] = pd.DataFrame(np.random.randint(2, size=(len(df), 1)))
+            df["record_predict"] = (df["home_wins"] >= df["away_wins"]).apply(int)
+
+            plots.plot_brier(df, "home_won", "elo_win_prob", ax=plt.gca())
+            plots.plot_brier(df, "home_won", "big-elo_win_prob", ax=plt.gca())
+            plots.plot_brier(df, "home_won", "small-elo_win_prob", ax=plt.gca())
+            plots.plot_brier(df, "home_won", "massive-elo_win_prob", ax=plt.gca())
+            plots.plot_brier(df, "home_won", "record_predict", ax=plt.gca())
+            fig.legend(loc="center right")
+            plt.title("Brier scores for 20{}-{} season".format(year, year + 1))
 
     plt.show()
