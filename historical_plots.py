@@ -5,7 +5,7 @@ import seaborn as sns
 import argparse
 import matplotlib
 import volley_elo
-import analysis
+import plots
 import math
 import pandas as pd
 import numpy as np
@@ -44,14 +44,14 @@ if __name__ == "__main__":
     for year in range(args.start + 2, args.stop):
         df = dfs[year]
 
-        brier = analysis.brier_score(df, "home_won", "elo_win_prob")
-        brier2 = analysis.brier_score(df, "home_won", "big-elo_win_prob")
+        brier = plots.brier_score(df, "home_won", "elo_win_prob")
+        brier2 = plots.brier_score(df, "home_won", "big-elo_win_prob")
         print("20{}-{} Brier score:".format(year, year + 1), brier.sum())
         print("20{}-{} Big Brier score:".format(year, year + 1), brier2.sum())
 
         k = year - args.start - 2
         x, y = k // n_cols, k % n_cols
-        analysis.plot_elo(df, ax=axes[x, y], elo_name="elo")
+        plots.plot_elo(df, ax=axes[x, y], elo_name="elo")
         axes[x, y].set_xlabel("")
         plt.sca(axes[x, y])
         plt.xticks(rotation=45)
@@ -68,11 +68,11 @@ if __name__ == "__main__":
         df["random_choice"] = pd.DataFrame(np.random.randint(2, size=(len(df), 1)))
         df["record_predict"] = (df["home_wins"] >= df["away_wins"]).apply(int)
 
-        analysis.plot_brier(df, "home_won", "elo_win_prob", ax=plt.gca())
-        analysis.plot_brier(df, "home_won", "big-elo_win_prob", ax=plt.gca())
-        analysis.plot_brier(df, "home_won", "small-elo_win_prob", ax=plt.gca())
-        analysis.plot_brier(df, "home_won", "massive-elo_win_prob", ax=plt.gca())
-        analysis.plot_brier(df, "home_won", "record_predict", ax=plt.gca())
+        plots.plot_brier(df, "home_won", "elo_win_prob", ax=plt.gca())
+        plots.plot_brier(df, "home_won", "big-elo_win_prob", ax=plt.gca())
+        plots.plot_brier(df, "home_won", "small-elo_win_prob", ax=plt.gca())
+        plots.plot_brier(df, "home_won", "massive-elo_win_prob", ax=plt.gca())
+        plots.plot_brier(df, "home_won", "record_predict", ax=plt.gca())
         fig.legend(loc="center right")
         plt.title("Brier scores for 20{}-{} season".format(year, year + 1))
 
