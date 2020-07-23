@@ -62,7 +62,7 @@ def brier_score(df, result_col, predict_col):
 
 
 def plot_brier(df, result_col, predict_col, ax):
-    """TODO: Docstring for plot_brier.
+    """Plot Brier scores and a moving average for the given dataframe.
 
     :year: TODO
     :returns: TODO
