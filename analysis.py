@@ -1,20 +1,6 @@
 #!/usr/bin/env python3
 
-from volley_elo import ELO_TEAMS_DIR, ELO_MATCH_DIR, team_elo_df
-import os.path as path
-import pandas as pd
-
-
-def get_elo_df(year):
-    fpath = path.join(ELO_TEAMS_DIR, "volley-{}-{}-elo.csv".format(year, year + 1))
-    return pd.read_csv(fpath)
-
-
-def get_match_df(year):
-    fpath = path.join(ELO_MATCH_DIR, "volley-{}-{}-elo.csv".format(year, year + 1))
-    df = pd.read_csv(fpath)
-    df["home_won"] = df["home_score"] == 3
-    return df
+from volley_elo import team_elo_df
 
 
 def plot_elo(match_df, ax, elo_name="elo", teams=None, add_markers=True):
