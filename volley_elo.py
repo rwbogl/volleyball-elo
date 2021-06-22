@@ -40,7 +40,6 @@ Okay, so just record the dates of the games along with the results. That way
 you can graph things with respect to time later, if you want.
 """
 
-from utils import CONF_NAMES
 import os.path as path
 import pandas as pd
 import elo
@@ -50,6 +49,8 @@ RECORD_DIRECTORY = "data/results"
 ELO_TEAMS_DIR = path.join(ELO_DIRECTORY, "teams/")
 ELO_MATCH_DIR = path.join(ELO_DIRECTORY, "matches/")
 TEAMS_FIELDNAMES = ["name", "wins", "losses", "elo", "date"]
+CONF_NAMES = ['Berry', 'Birmingham-Southern', 'Hendrix', 'Millsaps', 'Oglethorpe',
+              'Centre', 'Sewanee', 'Rhodes']
 
 TEAMS = {name: elo.Team(name, 1500) for name in CONF_NAMES}
 

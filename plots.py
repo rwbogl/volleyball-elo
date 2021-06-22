@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from volley_elo import team_elo_df
-from utils import brier_score
+from elo import brier_score
 
 
 def plot_elo(match_df, ax, elo_name="elo", teams=None, add_markers=True):
