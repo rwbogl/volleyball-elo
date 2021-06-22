@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import pandas as pd
 import random
 import copy
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     dfs = {year: volley_elo.get_historical_df(year) for year in range(12, 20)}
 
-    # Only record seasons up to 2018. (This actually modifies volley_elo.TEAMS,
+    # Only record seasons up to 2019. (This actually modifies volley_elo.TEAMS,
     # don't forget that.)
     volley_elo.record_seasons(list(dfs.values())[:-1])
 

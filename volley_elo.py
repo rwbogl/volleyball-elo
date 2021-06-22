@@ -40,13 +40,13 @@ Okay, so just record the dates of the games along with the results. That way
 you can graph things with respect to time later, if you want.
 """
 
-from volley_scrape import RECORD_DIRECTORY
 from utils import CONF_NAMES
 import os.path as path
 import pandas as pd
 import elo
 
 ELO_DIRECTORY = "data/elo/"
+RECORD_DIRECTORY = "data/results"
 ELO_TEAMS_DIR = path.join(ELO_DIRECTORY, "teams/")
 ELO_MATCH_DIR = path.join(ELO_DIRECTORY, "matches/")
 TEAMS_FIELDNAMES = ["name", "wins", "losses", "elo", "date"]
