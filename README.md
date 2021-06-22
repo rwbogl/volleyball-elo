@@ -3,26 +3,25 @@
 This is a small project to compute and analyze [Elo
 ratings](https://en.wikipedia.org/wiki/Elo_rating_system) for Women's
 Volleyball teams in the [Southern Athletic
-Association](https://www.saa-sports.com/sports/wvball).
+Association](https://saa-sports.com/index.aspx?path=wvball).
 
-The project contains scripts to:
+The project contains:
 
-1. Scrape and parse historical match data from the SAA's website ([volley_scrape.py](volley_scrape.py))
+1. CSV files summarizing match results of SAA play from 2012 ([data/](data/)).
+   (This was originally scraped with a script, but the SAA changes its website
+   so much that it's easier to just provide CSV files.)
 
-2. Compute Elo scores from historical data ([volley_elo.py](volley_elo.py))
+2. Code to compute Elo scores ([volley_elo.py](volley_elo.py)).
 
-3. Plot examples of Elo and [Brier
-   score](https://en.wikipedia.org/wiki/Brier_score) analysis ([historical_plots.py](historical_plots.py))
+3. Code for example Elo and [Brier
+   score](https://en.wikipedia.org/wiki/Brier_score) analysis ([historical_plots.py](historical_plots.py)).
 
-3. Predict future games based on current Elo ([simulations.py](simulations.py))
+4. Code to predict future games based on current Elo ([simulations.py](simulations.py)).
 
-## Getting started
+## Examples
 
-First, run `./volley_scrape.py` to ensure that the relevant historical data has
-been scraped from the SAA's website.
-
-Then, the following code will load some dataframes and populate them with Elo
-and Brier score data:
+The following code will load some dataframes and populate them with Elo and
+Brier score data:
 
 ```python
 import volley_elo
