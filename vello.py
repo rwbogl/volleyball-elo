@@ -165,5 +165,10 @@ def record_seasons(dfs, K=40, R=3, elo_name="elo", reset=False):
 
 
 if __name__ == "__main__":
-    dfs = record_seasons(12, 20)
+    # Use this to populate elo columns.
+    dfs = {year: get_historical_df(year) for year in range(12, 21)}
+    record_seasons(list(dfs.values()), reset=True)
     team_dfs = {year: team_elo_df(d) for year, d in dfs.items()}
+
+    for year, df in dfs.items():
+        df.to_csv("./data/elo/volley-elo-{}-{}.csv".format(year, year + 1))
