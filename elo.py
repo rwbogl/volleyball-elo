@@ -27,7 +27,7 @@ class Match:
 
                 :postseason_multiplier: Constant factor for postseason Elo.
 
-                :K: Elo K-factor.
+                :K: Elo K-factor, the "base" Elo change from a win (defaults to 40).
 
                 :set_map: Dictionary mapping number of sets (3, 4, 5) to
                           constant Elo mutliplier.
@@ -135,6 +135,10 @@ def brier_score(df, result_col, predict_col):
 
     """
     return 100 * (1 - (df[result_col] - df[predict_col])**2) - 75
+
+
+def brier(result, prediction):
+    return 100 * (1 - (result - prediction)**2) - 75
 
 
 if __name__ == "__main__":
