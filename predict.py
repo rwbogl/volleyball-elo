@@ -136,6 +136,34 @@ def predict_season(match_df, teams, iterations=1, regress=True, **kwargs):
     return list(teams.keys()), pd.DataFrame(reform)
 
 
+def evaluate_playoffs(train_csv, test_csv):
+    teams, df = vello.load_games(train_csv)
+    vello.record_games(df, teams)
+    used_teams, test_df = vello.load_games(TEST_INPUT)
+
+    Ks = []
+    scores = []
+
+    for K in range(10, 110, 10):
+        print(K)
+        Ks.append(K)
+        teams, df = vello.load_games(train_csv)
+        vello.record_games(df, teams, K=K)
+        used_teams, test_df = vello.load_games(test_csv)
+        team_names, res = predict_season(test_df, teams, 5000, K=K)
+
+        playoff_predictions = res.xs("first_round", level=1, axis=1).mean()
+        playoff_df = test_df[test_df.postseason == True]
+        playoff_teams = set(playoff_df.home) | set(playoff_df.away)
+        print(playoff_teams)
+        score = 0
+        for team in team_names:
+            score += elo.brier(team in playoff_teams, playoff_predictions[team])
+
+        scores.append(score)
+
+    return Ks, scores
+
 if __name__ == "__main__":
     teams, df = vello.load_games(TRAIN_INPUT)
     vello.record_games(df, teams)
