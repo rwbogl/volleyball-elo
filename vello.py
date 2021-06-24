@@ -63,17 +63,16 @@ def record_games(match_df, teams, K=40, R=3, elo_name="elo", reset=False):
         home = teams[match.home]
         away = teams[match.away]
 
-        # Regress towards to mean for every 3 months you didn't play a
-        # game.
+        # Regress towards to mean if you haven't played in at least 3 months.
         if match.home in last_seen:
             delta = match.date - last_seen[match.home]
-            intervals = delta.days // (30 * 3)
-            home.elo -= intervals * (home.elo - 1500) / R
+            if delta.days >= 30 * 3:
+                home.elo -= (home.elo - 1500) / R
 
         if match.away in last_seen:
             delta = match.date - last_seen[match.away]
-            intervals = delta.days // (30 * 3)
-            away.elo -= intervals * (away.elo - 1500) / R
+            if delta.days >= 30 * 3:
+                away.elo -= (away.elo - 1500) / R
 
         last_seen[match.home] = match.date
         last_seen[match.away] = match.date
@@ -92,5 +91,5 @@ def record_games(match_df, teams, K=40, R=3, elo_name="elo", reset=False):
     return pd.concat([match_df, update], axis=1)
 
 if __name__ == "__main__":
-    teams, df = load_games("./data/results/games.csv")
+    teams, df = load_games("./data/games.csv")
     elo_df = record_games(df, teams)
